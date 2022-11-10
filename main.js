@@ -4,7 +4,7 @@ const XLSX = require("xlsx");
 const path = require("path");
 
 var pageNumber = 1;
-var crawlData = [];
+
 
 // Test Sample
 const sampleData = [
@@ -44,19 +44,19 @@ const urlToCrawl = [
     "https://www.tokopedia.com/hinomanado/etalase/spareparts",
     "https://www.tokopedia.com/hinopatrako/etalase/sparepart",
     "https://www.tokopedia.com/hinokumala/etalase/spare-part",
-    "https://www.tokopedia.com/hinokumala/etalase/spare-part",
     "https://www.tokopedia.com/hinomitra/etalase/sparepart-hino",
     "https://www.tokopedia.com/hinoprima/etalase/spparepart-hino",
     "https://www.tokopedia.com/antasenaagu/etalase/spare-part",
     "https://www.tokopedia.com/ampsampit/product",
-    "https://www.tokopedia.com/hinokumala/etalase/spare-part",
 ];
 
 const data = async () => {
     var allData = [];
     for (let i = 0; i < urlToCrawl.length; i++) {
         var dataFromCrawl = await getData(urlToCrawl[i]);
+        // console.log(i, " - ", urlToCrawl[i], " before concate", allData.length, dataFromCrawl.length, allData.length+dataFromCrawl.length)
         allData = allData.concat(dataFromCrawl);
+        // console.log("after concate", allData.length)
         if (i === urlToCrawl.length-1) {
             exportxls(allData, workSheetColumnName, workSheetName, filePath)
         }
@@ -67,6 +67,7 @@ data()
 
 async function getData(url) {
     // Launch Browser
+    var crawlData = [];
     const browser = await puppeteer.launch({
         headless: false,
         args: ['--no-sandbox']
@@ -107,8 +108,8 @@ async function getData(url) {
     var productElement = [];
     // .css-974pl -> product container display
     await $('.css-974ipl > a').each((i, obj) => {
-        // const regex = /(\S){5}-(\S){5}/g // regex hinopersada
-        // const regex = /\((\S){10}\)/g // regex hinoarmindo
+        // const regex = /(\S){5}-(\S){5}/g // regex 
+        // const regex = /\((\S){10}\)/g // regex 
         const regex = /\(([^)]+)\)|\[([^)]+)\]/g // regex global
         var codeItem = obj.attribs.title.match(regex);
         if (typeof(codeItem) === "object" && codeItem !== null) {
@@ -121,7 +122,7 @@ async function getData(url) {
         }
         crawlData.push(productElement[i])
     });
-
+    await resolveAfter5Seconds();
     await browser.close();
     return crawlData
 
