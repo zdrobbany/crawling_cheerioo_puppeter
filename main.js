@@ -16,6 +16,7 @@ const sampleData = [
 const workSheetColumnName = [
     "URL",
     "TITLE",
+    "DEALER",
     "ITEM CODE"
 ]
 
@@ -50,6 +51,35 @@ const urlToCrawl = [
     "https://www.tokopedia.com/ampsampit/product",
 ];
 
+const dealer = [
+    "hinoarmindo",
+    "hinoarista",
+    "hinohibaindo",
+    "hinodayaguna",
+    "hinoindosentosa",
+    "mayagrahai",
+    "dutahino",
+    "hinompm",
+    "hinocaturkokoh",
+    "hinocsbi",
+    "hinovima",
+    "hinopalembang",
+    "hinopersada",
+    "hino-lampung",
+    "hinojayaindah",
+    "hinobengkulu",
+    "hinoriau",
+    "hinotrans",
+    "hinomanado",
+    "hinopatrako",
+    "hinokumala",
+    "hinomitra",
+    "hinoprima",
+    "antasenaagu",
+    "ampsampit",
+];
+
+
 const data = async () => {
     var allData = [];
     const browser = await puppeteer.launch({
@@ -57,7 +87,7 @@ const data = async () => {
         args: ['--no-sandbox']
     });
     for (let i = 0; i < urlToCrawl.length; i++) {
-        var dataFromCrawl = await getData(urlToCrawl[i], browser);
+        var dataFromCrawl = await getData(urlToCrawl[i], browser, dealer[i]);
         console.log(i, " - ", urlToCrawl[i], " before concate", allData.length, dataFromCrawl.length, allData.length+dataFromCrawl.length)
         allData = allData.concat(dataFromCrawl);
         console.log("after concate", allData.length)
@@ -70,7 +100,7 @@ const data = async () => {
 
 data()
 
-async function getData(url, browser) {
+async function getData(url, browser, dealer) {
     // Launch Browser
     var crawlData = [];
     // Open new Browser
@@ -119,6 +149,7 @@ async function getData(url, browser) {
         productElement[i] = {
             url: obj.attribs.href,
             title: obj.attribs.title,
+            dealer: dealer,
             codeItem: codeItem
         }
         crawlData.push(productElement[i])
@@ -162,7 +193,7 @@ const exportxls = (obj, workSheetColumnName, workSheetName, filePath) => {
     // console.log('on export excel: ', obj)
     const data = obj.map(el => {
         // console.log([el.url, el.title, el.codeItem])
-        return [el.url, el.title, el.codeItem]
+        return [el.url, el.title, el.dealer, el.codeItem]
     });
     const workBook = XLSX.utils.book_new();
     const workSheetData = [
