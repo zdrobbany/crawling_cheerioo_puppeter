@@ -52,28 +52,27 @@ const urlToCrawl = [
 
 const data = async () => {
     var allData = [];
+    const browser = await puppeteer.launch({
+        headless: false,
+        args: ['--no-sandbox']
+    });
     for (let i = 0; i < urlToCrawl.length; i++) {
-        var dataFromCrawl = await getData(urlToCrawl[i]);
-        // console.log(i, " - ", urlToCrawl[i], " before concate", allData.length, dataFromCrawl.length, allData.length+dataFromCrawl.length)
+        var dataFromCrawl = await getData(urlToCrawl[i], browser);
+        console.log(i, " - ", urlToCrawl[i], " before concate", allData.length, dataFromCrawl.length, allData.length+dataFromCrawl.length)
         allData = allData.concat(dataFromCrawl);
-        // console.log("after concate", allData.length)
+        console.log("after concate", allData.length)
         if (i === urlToCrawl.length-1) {
             exportxls(allData, workSheetColumnName, workSheetName, filePath)
+            await browser.close();
         }
     }
 }
 
 data()
 
-async function getData(url) {
+async function getData(url, browser) {
     // Launch Browser
     var crawlData = [];
-    const browser = await puppeteer.launch({
-        headless: false,
-        args: ['--no-sandbox']
-    });
-
-
     // Open new Browser
     const page = await browser.newPage()
     // var checkerPage = true;
@@ -114,6 +113,8 @@ async function getData(url) {
         var codeItem = obj.attribs.title.match(regex);
         if (typeof(codeItem) === "object" && codeItem !== null) {
             codeItem = codeItem[0]
+            codeItem = codeItem.slice(1,codeItem.length-1)
+            codeItem = codeItem.trims()
         }
         productElement[i] = {
             url: obj.attribs.href,
@@ -123,7 +124,6 @@ async function getData(url) {
         crawlData.push(productElement[i])
     });
     await resolveAfter5Seconds();
-    await browser.close();
     return crawlData
 
     /** Use if using many page **/
@@ -161,7 +161,7 @@ async function autoScroll(page) {
 const exportxls = (obj, workSheetColumnName, workSheetName, filePath) => {
     // console.log('on export excel: ', obj)
     const data = obj.map(el => {
-        console.log([el.url, el.title, el.codeItem])
+        // console.log([el.url, el.title, el.codeItem])
         return [el.url, el.title, el.codeItem]
     });
     const workBook = XLSX.utils.book_new();
